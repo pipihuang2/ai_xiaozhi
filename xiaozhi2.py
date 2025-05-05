@@ -35,7 +35,7 @@ request_json = {
     "app": {"appid": appid, "token": "access_token", "cluster": cluster},
     "user": {"uid": "123"},
     "audio": {
-        "voice_type": voice_type,
+        "voice_type": "zh_female_wanwanxiaohe_moon_bigtts",
         "encoding": "wav",  # 内存播放更稳定
         "speed_ratio": 1.0,
         "volume_ratio": 1.0,
@@ -178,7 +178,7 @@ async def main():
         reply = await chat_with_ai(messages)
         reply_clean = clean_reply(reply)
         messages.append({"role": "assistant", "content": reply_clean})
-
+        print('我是message',messages)
         await speak(reply_clean)
         await asyncio.sleep(0.1)
 

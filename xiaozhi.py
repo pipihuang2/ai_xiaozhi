@@ -7,6 +7,7 @@ pip install asyncio
 pip install websockets
 
 '''
+import os.path
 
 from pydub.playback import play
 import asyncio
@@ -16,7 +17,9 @@ import json
 import gzip
 import copy
 from pydub import AudioSegment
-
+import tempfile
+import subprocess
+os.environ['TEMP'] = 'D:/temp'
 
 MESSAGE_TYPES = {11: "audio-only server response", 12: "frontend server response", 15: "error message from server"}
 MESSAGE_TYPE_SPECIFIC_FLAGS = {0: "no sequence number", 1: "sequence number > 0",
@@ -90,7 +93,6 @@ async def test_submit():
             if done:
                 file_to_save.close()
                 import time
-                time.sleep(0.1)
                 audio = AudioSegment.from_mp3(r"F:\deeplearning\pytorch\deep_chat\test_submit.mp3")
                 play(audio)
                 break
@@ -114,11 +116,24 @@ async def test_query():
     async with websockets.connect(api_url, extra_headers=header, ping_interval=None) as ws:
         await ws.send(full_client_request)
         res = await ws.recv()
+        print('我准备去parse_response')
         parse_response(res, file_to_save)
+        print("parse_response结束啦")
         file_to_save.close()
+        if os.path.exists(r"D:\xiaozhi\ai_xiaozhi\test_query.mp3"):
+            print('mp3文件存在着')
+        audio = AudioSegment.from_mp3(r"D:\xiaozhi\ai_xiaozhi\test_query.mp3")
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+            wav_path = tmp_wav.name
+            audio.export(wav_path, format="wav")
 
-        # audio = AudioSegment.from_mp3(r"F:\deeplearning\pytorch\deep_chat\test_submit.mp3")
-        # play(audio)
+        try:
+            # 播放音频
+            subprocess.call(["ffplay", "-nodisp", "-autoexit", wav_path])
+        finally:
+            # 播放完删除临时文件
+            os.remove(wav_path)
+
         print("\nclosing the connection...")
 
 
@@ -182,5 +197,5 @@ def parse_response(res, file):
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(test_submit())
+    #loop.run_until_complete(test_submit())
     loop.run_until_complete(test_query())
